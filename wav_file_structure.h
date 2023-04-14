@@ -1,3 +1,5 @@
+#ifndef __WAV_FILE_STRUCTURE__
+#define __WAV_FILE_STRUCTURE__
 #include <stdint.h>
 typedef struct {
     char chunk_id[4]; //4 bytes contains "RIFF" endian: big
@@ -14,3 +16,4 @@ typedef struct {
     char subchunk2_ID[4];   //4 bytes contains "data" endian: big
     uint32_t subchunk2Size; //4 bytes NumSamples * NumChannels * BitsPerSample/8
 } wav_header_t;
+#endif
