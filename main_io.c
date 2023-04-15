@@ -17,7 +17,7 @@ void check_for_additional_arguments(int *o_flag, int *s_flag, int argc, char **a
     }
     
 }
-void prompt_for_filename_and_fill_in__filename(char *filename){
+void prompt_for_filename_and_fill_in_filename(char *filename){
     printf("Please enter the name of the wav file you want to resize!\n");
     safe_string_input(filename, 32);
 }
