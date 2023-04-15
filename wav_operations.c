@@ -40,34 +40,48 @@ void check_if_the_wav_file_has_correct_metadata_structure(wav_header_t header){
         exit(EXIT_FAILURE);
     }
 }
-void calculate_the_new_data_and_write_to_output_file(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename){
-    // Get the number of samples and allocate memory for the audio data
-    uint32_t num_samples = header.subchunk2_size / sizeof(int16_t);
+void extend_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename){
+    
+    uint32_t num_samples = header.subchunk2_size / sizeof(int16_t); //get sampples
     int16_t *data;
     data = malloc(num_samples * sizeof(int16_t));
-    fread(data, sizeof(int16_t), num_samples, input_file);
+    fread(data, sizeof(int16_t), num_samples, input_file); //copy existing data
 
-    // Determine the number of samples of silence to add
-    uint32_t silenceLen = (uint32_t)(duration * header.sample_rate);
+    
+    uint32_t silence_len = (uint32_t)(duration * header.sample_rate); // number of silence samples
 
-    // Append the digital silence samples to the end of the audio data
-    data = realloc(data, (num_samples + silenceLen) * sizeof(int16_t));
-    memset(&data[num_samples], 0, silenceLen * sizeof(int16_t));
+    data = realloc(data, (num_samples + silence_len) * sizeof(int16_t)); // reallocate space for the silence samples
+    memset(&data[num_samples], 0, silence_len * sizeof(int16_t)); //set the samples to 0
 
-    // Update the WAV header with the new file size
-    header.chunk_size = 36 + num_samples * sizeof(int16_t) + silenceLen * sizeof(int16_t);
-    header.subchunk2_size = num_samples * sizeof(int16_t) + silenceLen * sizeof(int16_t);
+    //update the wav header
+    header.chunk_size = 36 + num_samples * sizeof(int16_t) + silence_len * sizeof(int16_t);
+    header.subchunk2_size = num_samples * sizeof(int16_t) + silence_len * sizeof(int16_t);
 
-    // Write the WAV header and audio data to the output file
+    // writr to wav
     fwrite(&header, sizeof(wav_header_t), 1, output_file);
-    fwrite(data, sizeof(int16_t), num_samples + silenceLen, output_file);
+    fwrite(data, sizeof(int16_t), num_samples + silence_len, output_file);
 
     free_resources(input_file, output_file, data);
 }
+void trim_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename){
+    int16_t *data;
+    uint32_t num_samples, sample_duration_to_be_removed;
+    num_samples = header.subchunk2_size / sizeof(int16_t);
+    sample_duration_to_be_removed = (uint32_t)(duration * header.sample_rate);
+    num_samples -= sample_duration_to_be_removed;
+    data = malloc((num_samples) * sizeof(int16_t));
+    fread(data, sizeof(int16_t), (num_samples), input_file);
+    int length = header.subchunk2_size / (header.sample_rate * header.num_channels * header.bits_per_sample / 8);
+    header.chunk_size = 36 + num_samples * sizeof(int16_t);
+    header.subchunk2_size = num_samples * sizeof(int16_t);
+    fwrite(&header, sizeof(wav_header_t), 1, output_file);
+    fwrite(data, sizeof(int16_t), num_samples, output_file);
+
+    free_resources(input_file, output_file, data);
+
+}
 void free_resources(FILE *input_file, FILE *output_file, int16_t *data){
-    // Close the input and output files
     fclose(input_file);
     fclose(output_file);
-    // Free the memory allocated for the audio data
     free(data);
 }
