@@ -14,6 +14,6 @@ typedef struct {
     uint16_t block_align;   //2 bytes NumChannels * BitsPerSample/8 endian: little
     uint16_t bits_per_sample;   //2 bytes 8 bits = 8, 16 bits = 16 endian: little
     char subchunk2_ID[4];   //4 bytes contains "data" endian: big
-    uint32_t subchunk2Size; //4 bytes NumSamples * NumChannels * BitsPerSample/8
+    uint32_t subchunk2_size; //4 bytes NumSamples * NumChannels * BitsPerSample/8
 } wav_header_t;
 #endif
