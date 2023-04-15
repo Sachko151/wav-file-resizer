@@ -40,3 +40,21 @@ void check_if_the_filename_is_invalid(char *filename){
     }
     
 }
+char *return_new_output_filename(char *input_filename){
+    char *filename = malloc((strlen(input_filename)+strlen("-modified"))+1);
+    for (size_t i = 0; i < strlen(input_filename) - 4; i++)
+    {
+        *(filename+i) = *(input_filename+i);
+    }
+    strncat(filename, "-modified.wav", 14);
+    return filename;
+}
+FILE  *open_the_output_file(char *output_filename){
+    FILE *output_file = fopen(output_filename, "wb");
+    if (output_file == NULL) {
+        printf("%s", output_filename);
+        fprintf(stderr, "Error opening output file\n");
+        exit(1);
+    }
+    return output_file;
+}
