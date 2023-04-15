@@ -20,7 +20,8 @@ int main(int argc, char **argv){
     // check_if_the_wav_file_has_correct_metadata_structure(header_metadata);
     // print_out_wav_file_metadata_easy_way(header_metadata);
     output_file = open_the_output_file(output_filename);
-    calculate_the_new_data_and_write_to_output_file(header_metadata, input_file, output_file, 3, FILENAME, output_filename);
+    print_out_wav_file_length_in_specified_format(header_metadata);
+    // calculate_the_new_data_and_write_to_output_file(header_metadata, input_file, output_file, 3, FILENAME, output_filename);
     return EXIT_SUCCESS;
 }
 

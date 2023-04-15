@@ -22,6 +22,15 @@ void print_out_wav_file_metadata_easy_way(wav_header_t wav_struct){
     printf("Subchunk2 ID: %.4s\n", wav_struct.subchunk2_ID);
     printf("Subchunk2 Size: %hu\n", wav_struct.subchunk2_size);
 }
+void print_out_wav_file_length_in_specified_format(wav_header_t wav_stuct){
+    // 
+    uint32_t length = wav_stuct.subchunk2_size / (wav_stuct.sample_rate * wav_stuct.num_channels * wav_stuct.bits_per_sample / 8);
+    int hours = (int) length/3600;
+    int easier_format = (int) length % 3600;
+    int minutes = easier_format/60;
+    int seconds = easier_format % 60;
+    printf("The length of the file content is %d:%d:%d", hours,minutes,seconds);
+}
 void check_if_the_wav_file_has_correct_metadata_structure(wav_header_t header){
     if (strncmp(header.chunk_id, "RIFF", 4) != 0 ||
         strncmp(header.format, "WAVE", 4) != 0 ||
