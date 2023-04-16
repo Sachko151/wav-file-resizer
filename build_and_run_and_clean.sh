@@ -1,4 +1,4 @@
 clear
 make
-./output
+./output -s
 make clean
