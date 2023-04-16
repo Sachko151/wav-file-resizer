@@ -13,4 +13,5 @@ char *return_new_output_filename(char *input_filename);
 FILE  *open_the_output_file(char *output_filename);
 uint32_t return_length_in_seconds_from_string_format(char *input);
 void prompt_for_new_length_in_specified_format(char *new_length);
+void remove_old_file_if_overwrite_flag_is_present(int overwrite_flag, char *input_filename);
 #endif

@@ -84,3 +84,8 @@ void prompt_for_new_length_in_specified_format(char *new_length){
     printf("Please enter the new length in the specified format (<hh>:<mm>:<ss>)!\n");
     safe_string_input(new_length, WAV_LENGTH_FORMAT_SIZE);
 }
+void remove_old_file_if_overwrite_flag_is_present(int overwrite_flag, char *input_filename){
+    if(overwrite_flag){
+        remove(input_filename);
+    }
+}

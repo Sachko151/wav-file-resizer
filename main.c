@@ -25,6 +25,6 @@ int main(int argc, char **argv){
     uint32_t new_size = return_length_in_seconds_from_string_format(new_wav_length);
     determine_whether_to_trim_extend_or_quit(old_size, new_size, header_metadata, input_file, output_file,
     input_filename, output_filename);
+    remove_old_file_if_overwrite_flag_is_present(overwrite_flag, input_filename);
     return EXIT_SUCCESS;
 }
-
