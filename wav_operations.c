@@ -22,14 +22,14 @@ void print_out_wav_file_metadata_easy_way(wav_header_t wav_struct){
     printf("Subchunk2 ID: %.4s\n", wav_struct.subchunk2_ID);
     printf("Subchunk2 Size: %hu\n", wav_struct.subchunk2_size);
 }
-void print_out_wav_file_length_in_specified_format(wav_header_t wav_stuct){
+void print_out_wav_file_length_in_specified_format(wav_header_t wav_struct){
     // 
-    uint32_t length = wav_stuct.subchunk2_size / (wav_stuct.sample_rate * wav_stuct.num_channels * wav_stuct.bits_per_sample / 8);
+    uint32_t length = return_length_of_file_in_seconds(wav_struct);
     int hours = (int) length/3600;
     int easier_format = (int) length % 3600;
     int minutes = easier_format/60;
     int seconds = easier_format % 60;
-    printf("The length of the file content is %d:%d:%d", hours,minutes,seconds);
+    printf("The length of the file content is %.02d:%.02d:%.02d\n", hours,minutes,seconds);
 }
 void check_if_the_wav_file_has_correct_metadata_structure(wav_header_t header){
     if (strncmp(header.chunk_id, "RIFF", 4) != 0 ||
@@ -57,7 +57,7 @@ void extend_the_wav_file_with_specified_duration_in_seconds(wav_header_t header,
     header.chunk_size = 36 + num_samples * sizeof(int16_t) + silence_len * sizeof(int16_t);
     header.subchunk2_size = num_samples * sizeof(int16_t) + silence_len * sizeof(int16_t);
 
-    // writr to wav
+    // write to wav
     fwrite(&header, sizeof(wav_header_t), 1, output_file);
     fwrite(data, sizeof(int16_t), num_samples + silence_len, output_file);
 
@@ -76,12 +76,29 @@ void trim_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, F
     header.subchunk2_size = num_samples * sizeof(int16_t);
     fwrite(&header, sizeof(wav_header_t), 1, output_file);
     fwrite(data, sizeof(int16_t), num_samples, output_file);
-
     free_resources(input_file, output_file, data);
 
+}
+uint32_t return_length_of_file_in_seconds(wav_header_t wav_struct){
+    return wav_struct.subchunk2_size / (wav_struct.sample_rate * wav_struct.num_channels * wav_struct.bits_per_sample / 8);
 }
 void free_resources(FILE *input_file, FILE *output_file, int16_t *data){
     fclose(input_file);
     fclose(output_file);
     free(data);
+}
+void determine_whether_to_trim_extend_or_quit(uint32_t old_size, uint32_t new_size, wav_header_t header, FILE *input_file, 
+                                            FILE *output_file, char *input_filename, char *output_filename){
+    int diff = new_size - old_size;
+    if(diff < 0){
+        trim_the_wav_file_with_specified_duration_in_seconds(header, input_file, output_file, abs(diff), 
+        input_filename, output_filename);
+        printf("File successfully trimmed with %d seconds!\n", abs(diff));
+    } else if(diff > 0){
+        extend_the_wav_file_with_specified_duration_in_seconds(header, input_file, output_file, diff, 
+        input_filename, output_filename);
+        printf("File successfully extended with %d seconds!\n", diff);
+    } else{
+        printf("Nothing to do!\n");
+    }
 }

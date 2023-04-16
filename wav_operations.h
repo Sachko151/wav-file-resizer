@@ -13,4 +13,7 @@ void extend_the_wav_file_with_specified_duration_in_seconds(wav_header_t header,
 void free_resources(FILE *input_file, FILE *output_file, int16_t *data);
 void print_out_wav_file_length_in_specified_format(wav_header_t wav_stuct);
 void trim_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename);
+uint32_t return_length_of_file_in_seconds(wav_header_t wav_struct);
+void determine_whether_to_trim_extend_or_quit(uint32_t old_size, uint32_t new_size, wav_header_t header, FILE *input_file, 
+                                            FILE *output_file, char *input_filename, char *output_filename);
 #endif
