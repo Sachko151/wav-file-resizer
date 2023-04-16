@@ -1,7 +1,7 @@
-#include "main_io.h"
-#include "wav_file_structure.h"
-#include "wav_operations.h"
-#include "log_header.h"
+#include "src/main_functions.h"
+#include "src/wav_file_structure.h"
+#include "src/wav_operations.h"
+#include "src/log.h"
 int main(int argc, char **argv){
     int overwrite_flag = 0,silent_flag = 0;
     FILE *input_file, *output_file;
