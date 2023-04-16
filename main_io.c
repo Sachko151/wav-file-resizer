@@ -1,4 +1,5 @@
 #include "main_io.h"
+
 void check_for_additional_arguments(int *o_flag, int *s_flag, int argc, char **argv){
     if(argc < 2){
         printf("No additional arguments\n");
@@ -29,6 +30,10 @@ void safe_string_input(char *str, int length){
     str[strlen(str)-1] = '\0';
 }
 void check_if_the_filename_is_invalid(char *filename){
+    if(strlen(filename) < 4){
+        printf("Invalid file type!\n");
+        exit(1);
+    }
     char acceptable[4] = ".wav";
     char *ptr_to_acc = acceptable;
     for (int i = strlen(filename)-4; i < strlen(filename); i++)
@@ -57,4 +62,25 @@ FILE  *open_the_output_file(char *output_filename){
         exit(1);
     }
     return output_file;
+}
+uint32_t return_length_in_seconds_from_string_format(char *input){
+    if(strlen(input) != 8){
+        fprintf(stderr, "Wrong input format");
+        exit(1);
+    }
+    char hours[3], minutes[3], seconds[3];
+    hours[0] = input[0];
+    hours[1] = input[1];
+    minutes[0] = input[3];
+    minutes[1] = input[4];
+    seconds[0] = input[6];
+    seconds[1] = input[7];
+    uint32_t seconds_d = atoi(seconds);
+    seconds_d += 60 * atoi(minutes);
+    seconds_d += 3600 * atoi(hours);
+    return seconds_d;
+}
+void prompt_for_new_length_in_specified_format(char *new_length){
+    printf("Please enter the new length in the specified format (<hh>:<mm>:<ss>)!\n");
+    safe_string_input(new_length, WAV_LENGTH_FORMAT_SIZE);
 }
