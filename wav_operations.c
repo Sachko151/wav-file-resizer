@@ -1,17 +1,17 @@
 #include "wav_operations.h"
-FILE *open_wav_file_and_return_error_if_encountered(char *filename, int silent_flag){
-    log_function(silent_flag, open_wav_file_and_return_error_if_encountered);
-    FILE *file_pointer = fopen(filename, "rb");
-    if (file_pointer == NULL) {
+FILE *open_wav_file_and_exit_if_error_encountered(char *filename, int silent_flag){
+    log_function(silent_flag, open_wav_file_and_exit_if_error_encountered);
+    FILE *input_file_pointer = fopen(filename, "rb");
+    if (input_file_pointer == NULL) {
         fprintf(stderr, "Error opening input file\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     log_function_parameter(silent_flag, filename,filename,s);
-    log_function_return(silent_flag, open_wav_file_and_return_error_if_encountered, file_pointer, p);
-    return file_pointer;
+    log_function_return(silent_flag, open_wav_file_and_exit_if_error_encountered, input_file_pointer, p);
+    return input_file_pointer;
 }
-void print_out_wav_file_metadata_easy_way(wav_header_t wav_struct, int silent_flag){
-    log_function(silent_flag, print_out_wav_file_metadata_easy_way);
+void print_out_wav_file_metadata(wav_header_t wav_struct, int silent_flag){
+    log_function(silent_flag, print_out_wav_file_metadata);
     printf("Chunk ID: %.4s\n", wav_struct.chunk_id);
     printf("Chunk Size: %u\n", wav_struct.chunk_size);
     printf("Format: %.4s\n", wav_struct.format);
@@ -28,15 +28,15 @@ void print_out_wav_file_metadata_easy_way(wav_header_t wav_struct, int silent_fl
 }
 void print_out_wav_file_length_in_specified_format(wav_header_t wav_struct, int silent_flag){
     log_function(silent_flag, print_out_wav_file_length_in_specified_format);
-    uint32_t length = return_length_of_file_in_seconds(wav_struct,silent_flag);
+    uint32_t length = return_length_of_wav_file_in_seconds(wav_struct,silent_flag);
     int hours = (int) length/3600;
     int easier_format = (int) length % 3600;
     int minutes = easier_format/60;
     int seconds = easier_format % 60;
     printf("The length of the file content is %.02d:%.02d:%.02d\n", hours,minutes,seconds);
 }
-void check_if_the_wav_file_has_correct_metadata_structure(wav_header_t header, int silent_flag){
-    log_function(silent_flag, check_if_the_wav_file_has_correct_metadata_structure);
+void check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not(wav_header_t header, int silent_flag){
+    log_function(silent_flag, check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not);
     if (strncmp(header.chunk_id, "RIFF", 4) != 0 ||
         strncmp(header.format, "WAVE", 4) != 0 ||
         strncmp(header.subchunk1_ID, "fmt ", 4) != 0 ||
@@ -89,9 +89,9 @@ void trim_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, F
     free_resources(input_file, output_file, data, silent_flag);
 
 }
-uint32_t return_length_of_file_in_seconds(wav_header_t wav_struct, int silent_flag){
-    log_function(silent_flag, return_length_of_file_in_seconds);
-    log_function_return(silent_flag, return_length_of_file_in_seconds, wav_struct.subchunk2_size / (wav_struct.sample_rate * wav_struct.num_channels * wav_struct.bits_per_sample / 8), u);
+uint32_t return_length_of_wav_file_in_seconds(wav_header_t wav_struct, int silent_flag){
+    log_function(silent_flag, return_length_of_wav_file_in_seconds);
+    log_function_return(silent_flag, return_length_of_wav_file_in_seconds, wav_struct.subchunk2_size / (wav_struct.sample_rate * wav_struct.num_channels * wav_struct.bits_per_sample / 8), u);
     return wav_struct.subchunk2_size / (wav_struct.sample_rate * wav_struct.num_channels * wav_struct.bits_per_sample / 8);
 }
 void free_resources(FILE *input_file, FILE *output_file, int16_t *data, int silent_flag){
@@ -124,4 +124,7 @@ void determine_whether_to_trim_extend_or_quit(uint32_t old_size, uint32_t new_si
     log_function_parameter(silent_flag, output_file, output_file, p);
     log_function_parameter(silent_flag, input_filename, input_filename, s);
     log_function_parameter(silent_flag, output_filename, output_filename, s);
+}
+void read_the_metadata_for_the_wav_file(wav_header_t *header_metadata, FILE *input_file){
+    fread(header_metadata, sizeof(wav_header_t), 1, input_file);//read the metadata
 }
