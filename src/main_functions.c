@@ -1,5 +1,4 @@
 #include "main_functions.h"
-
 void check_for_additional_arguments(int *o_flag, int *s_flag, int argc, char **argv){
     if(argc < 2){
         printf("No additional arguments\n");
@@ -53,17 +52,23 @@ void check_if_the_filename_is_invalid_and_exit_if_it_is(char *filename, int sile
 char *return_new_output_filename(char *input_filename, int silent_flag){
     log_function(silent_flag, return_new_output_filename);
     char *filename = malloc((strlen(input_filename)+strlen("-modified"))+1);
+    char ending[] = "-modified.wav";
+    int j = 0;
     for (size_t i = 0; i < strlen(input_filename) - 4; i++)
     {
         *(filename+i) = *(input_filename+i);
+        j++;
     }
-    strncat(filename, "-modified.wav", 14);
+    for (size_t i = 0; i < 14; i++)
+    {
+        *(filename+i+j) = *(ending+i);
+    }
     log_function_parameter(silent_flag, input_filename, input_filename, s);
     log_function_return(silent_flag, return_new_output_filename, filename, s);
     return filename;
 }
-FILE  *open_the_output_file_and_exit_if_error_encountered_and_exit_if_error_encountered_and_exit_if_error_encountered(char *output_filename, int silent_flag){
-    log_function(silent_flag, open_the_output_file_and_exit_if_error_encountered_and_exit_if_error_encountered_and_exit_if_error_encountered);
+FILE  *open_the_output_file_and_exit_if_error_encountered(char *output_filename, int silent_flag){
+    log_function(silent_flag, open_the_output_file_and_exit_if_error_encountered);
     FILE *output_file = fopen(output_filename, "wb");
     if (output_file == NULL) {
         printf("%s", output_filename);
@@ -71,7 +76,7 @@ FILE  *open_the_output_file_and_exit_if_error_encountered_and_exit_if_error_enco
         exit(EXIT_FAILURE);
     }
     log_function_parameter(silent_flag, output_filename, output_filename, s);
-    log_function_return(silent_flag, open_the_output_file_and_exit_if_error_encountered_and_exit_if_error_encountered_and_exit_if_error_encountered, output_file, p);
+    log_function_return(silent_flag, open_the_output_file_and_exit_if_error_encountered, output_file, p);
     return output_file;
 }
 uint32_t return_length_in_seconds_from_string_format(char *input, int silent_flag){
@@ -83,10 +88,13 @@ uint32_t return_length_in_seconds_from_string_format(char *input, int silent_fla
     char hours[3], minutes[3], seconds[3];
     hours[0] = input[0];
     hours[1] = input[1];
+    hours[2] = '\0';
     minutes[0] = input[3];
     minutes[1] = input[4];
+    minutes[2] = '\0';
     seconds[0] = input[6];
     seconds[1] = input[7];
+    seconds[2] = '\0';
     uint32_t seconds_d = atoi(seconds);
     seconds_d += 60 * atoi(minutes);
     seconds_d += 3600 * atoi(hours);
@@ -121,7 +129,7 @@ void start_of_the_program(int *overwrite_flag, int *silent_flag, int argc, char 
     print_out_wav_file_metadata(header_metadata,*silent_flag);
     print_out_wav_file_length_in_specified_format(header_metadata,*silent_flag);
     prompt_for_new_length_in_specified_format(new_wav_length,*silent_flag);
-    output_file = open_the_output_file_and_exit_if_error_encountered_and_exit_if_error_encountered_and_exit_if_error_encountered(output_filename,*silent_flag);
+    output_file = open_the_output_file_and_exit_if_error_encountered(output_filename,*silent_flag);
     uint32_t old_size = return_length_of_wav_file_in_seconds(header_metadata,*silent_flag);
     uint32_t new_size = return_length_in_seconds_from_string_format(new_wav_length,*silent_flag);
     determine_whether_to_trim_extend_or_quit(old_size, new_size, header_metadata, input_file, output_file,
