@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "stdint.h": "c",
+        "inttypes.h": "c",
+        "main_io.h": "c",
+        "wav_file_structure.h": "c",
+        "log_header.h": "c",
+        "wav_operations.h": "c",
+        "main_functions.h": "c"
+    }
+}
