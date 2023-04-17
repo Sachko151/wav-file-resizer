@@ -54,3 +54,4 @@ dkms.conf
 #Ignore the music samples used for testing and its directory
 wav_samples/
 *.wav
+output

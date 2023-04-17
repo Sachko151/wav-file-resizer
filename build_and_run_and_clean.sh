@@ -1,4 +1,4 @@
 clear
 make
 ./output -s
-make clean
+rm output

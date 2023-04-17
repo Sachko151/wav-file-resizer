@@ -17,4 +17,6 @@ uint32_t return_length_of_wav_file_in_seconds(wav_header_t wav_struct, int silen
 void read_the_metadata_for_the_wav_file(wav_header_t *header_metadata, FILE *input_file);
 void determine_whether_to_trim_extend_or_quit(uint32_t old_size, uint32_t new_size, wav_header_t header, FILE *input_file, 
                                             FILE *output_file, char *input_filename, char *output_filename, int silent_flag);
+void change_duration_so_that_it_works_with_stereo(wav_header_t header, uint32_t *new_size, uint32_t *old_size, int *diff, int *display_diff);
+void check_if_there_is_not_enough_memory_and_exit_if_there_isnt(void *ptr);
 #endif
