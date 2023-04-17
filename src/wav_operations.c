@@ -149,7 +149,13 @@ void change_duration_so_that_it_works_with_stereo(wav_header_t header, uint32_t 
 }
 void check_if_there_is_not_enough_memory_and_exit_if_there_isnt(void *ptr){
     if(ptr == NULL){
-        fprintf(stderr, "No memory!!!");
+        fprintf(stderr, "No memory!");
+        exit(EXIT_FAILURE);
+    }
+}
+void check_if_new_size_is_zero_and_exit_if_true(uint32_t new_size){
+    if(!new_size){
+        fprintf(stderr,"The new size cant be zero!");
         exit(EXIT_FAILURE);
     }
 }
