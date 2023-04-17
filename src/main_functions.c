@@ -133,6 +133,7 @@ void start_of_the_program(int *overwrite_flag, int *silent_flag, int argc, char 
     output_file = open_the_output_file_and_exit_if_error_encountered(output_filename,*silent_flag);
     uint32_t old_size = return_length_of_wav_file_in_seconds(header_metadata,*silent_flag);
     uint32_t new_size = return_length_in_seconds_from_string_format(new_wav_length,*silent_flag);
+    check_if_new_size_is_zero_and_exit_if_true(new_size);
     determine_whether_to_trim_extend_or_quit(old_size, new_size, header_metadata, input_file, output_file,
     input_filename, output_filename,*silent_flag);
     remove_old_file_if_overwrite_flag_is_present(*overwrite_flag, input_filename,*silent_flag);

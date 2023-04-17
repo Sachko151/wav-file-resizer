@@ -20,4 +20,5 @@ void prompt_for_new_length_in_specified_format(char *new_length, int silent_flag
 void remove_old_file_if_overwrite_flag_is_present(int overwrite_flag, char *input_filename, int silent_flag);
 void start_of_the_program(int *overwrite_flag, int *silent_flag, int argc, char **argv, char *input_filename, char *output_filename,
         FILE *input_file,FILE *output_file, wav_header_t header_metadata, char *new_wav_length);
+void check_if_new_size_is_zero_and_exit_if_true(uint32_t new_size);
 #endif
