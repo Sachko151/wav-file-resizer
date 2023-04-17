@@ -52,6 +52,7 @@ void check_if_the_filename_is_invalid_and_exit_if_it_is(char *filename, int sile
 char *return_new_output_filename(char *input_filename, int silent_flag){
     log_function(silent_flag, return_new_output_filename);
     char *filename = malloc((strlen(input_filename)+strlen("-modified"))+1);
+    check_if_there_is_not_enough_memory_and_exit_if_there_isnt(filename);
     char ending[] = "-modified.wav";
     int j = 0;
     for (size_t i = 0; i < strlen(input_filename) - 4; i++)

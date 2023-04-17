@@ -13,7 +13,7 @@ FILE *open_wav_file_and_exit_if_error_encountered(char *filename, int silent_fla
 void print_out_wav_file_metadata(wav_header_t wav_struct, int silent_flag){
     log_function(silent_flag, print_out_wav_file_metadata);
     printf("Chunk ID: %.4s\n", wav_struct.chunk_id);
-    printf("Chunk Size: %u\n", wav_struct.chunk_size);
+    printf("Chunk Size: %u\n", (wav_struct.chunk_size+8)); //8 bytes not inclueded
     printf("Format: %.4s\n", wav_struct.format);
     printf("Subchunk1 ID: %.4s\n", wav_struct.subchunk1_ID);
     printf("Subchunk1 Size: %u\n", wav_struct.subchunk1_size);
@@ -24,7 +24,7 @@ void print_out_wav_file_metadata(wav_header_t wav_struct, int silent_flag){
     printf("Block Align: %hu\n", wav_struct.block_align);
     printf("Bits Per Sample: %hu\n", wav_struct.bits_per_sample);
     printf("Subchunk2 ID: %.4s\n", wav_struct.subchunk2_ID);
-    printf("Subchunk2 Size: %hu\n", wav_struct.subchunk2_size);
+    printf("Subchunk2 Size: %u\n", wav_struct.subchunk2_size);
 }
 void print_out_wav_file_length_in_specified_format(wav_header_t wav_struct, int silent_flag){
     log_function(silent_flag, print_out_wav_file_length_in_specified_format);
@@ -47,9 +47,10 @@ void check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not(wav_he
 }
 void extend_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename, int silent_flag){
     log_function(silent_flag, extend_the_wav_file_with_specified_duration_in_seconds);
-    uint32_t num_samples = header.subchunk2_size / sizeof(int16_t); //get sampples
+    uint32_t num_samples = (8*header.subchunk2_size) / (header.num_channels * header.bits_per_sample);
     int16_t *data;
     data = malloc(num_samples * sizeof(int16_t));
+    check_if_there_is_not_enough_memory_and_exit_if_there_isnt(data);
     fread(data, sizeof(int16_t), num_samples, input_file); //copy existing data
     uint32_t silence_len = (uint32_t)(duration * header.sample_rate); // number of silence samples
     data = realloc(data, (num_samples + silence_len) * sizeof(int16_t)); // reallocate space for the silence samples
@@ -69,14 +70,13 @@ void extend_the_wav_file_with_specified_duration_in_seconds(wav_header_t header,
 }
 void trim_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename, int silent_flag){
     log_function(silent_flag, trim_the_wav_file_with_specified_duration_in_seconds);
+    int32_t length = header.subchunk2_size / (header.sample_rate * header.num_channels * header.bits_per_sample / 8);
+    duration = length - duration;
     int16_t *data;
-    uint32_t num_samples, sample_duration_to_be_removed;
-    num_samples = header.subchunk2_size / sizeof(int16_t);
-    sample_duration_to_be_removed = (uint32_t)(duration * header.sample_rate);
-    num_samples -= sample_duration_to_be_removed;
-    data = malloc((num_samples) * sizeof(int16_t));
-    fread(data, sizeof(int16_t), (num_samples), input_file);
-    int length = header.subchunk2_size / (header.sample_rate * header.num_channels * header.bits_per_sample / 8);
+    uint32_t num_samples = (uint32_t)(duration * (header.sample_rate*header.num_channels));
+    data = malloc(num_samples * sizeof(int16_t));
+    check_if_there_is_not_enough_memory_and_exit_if_there_isnt(data);
+    fread(data, sizeof(int16_t), num_samples, input_file);
     header.chunk_size = 36 + num_samples * sizeof(int16_t);
     header.subchunk2_size = num_samples * sizeof(int16_t);
     fwrite(&header, sizeof(wav_header_t), 1, output_file);
@@ -106,15 +106,16 @@ void free_resources(FILE *input_file, FILE *output_file, int16_t *data, int sile
 void determine_whether_to_trim_extend_or_quit(uint32_t old_size, uint32_t new_size, wav_header_t header, FILE *input_file, 
                                             FILE *output_file, char *input_filename, char *output_filename, int silent_flag){
     log_function(silent_flag, determine_whether_to_trim_extend_or_quit);
-    int diff = new_size - old_size;
-    if(diff < 0){
+    int diff, display_diff;
+    change_duration_so_that_it_works_with_stereo(header, &new_size, &old_size, &diff, &display_diff);
+    if(display_diff < 0){
         trim_the_wav_file_with_specified_duration_in_seconds(header, input_file, output_file, abs(diff), 
         input_filename, output_filename,silent_flag);
-        printf("File successfully trimmed with %d seconds!\n", abs(diff));
-    } else if(diff > 0){
+        printf("File successfully trimmed with %d seconds!\n", abs(display_diff));
+    } else if(display_diff > 0){
         extend_the_wav_file_with_specified_duration_in_seconds(header, input_file, output_file, diff, 
         input_filename, output_filename,silent_flag);
-        printf("File successfully extended with %d seconds!\n", diff);
+        printf("File successfully extended with %d seconds!\n", display_diff);
     } else{
         printf("Nothing to do!\n");
     }
@@ -127,4 +128,28 @@ void determine_whether_to_trim_extend_or_quit(uint32_t old_size, uint32_t new_si
 }
 void read_the_metadata_for_the_wav_file(wav_header_t *header_metadata, FILE *input_file){
     fread(header_metadata, sizeof(wav_header_t), 1, input_file);//read the metadata
+}
+void change_duration_so_that_it_works_with_stereo(wav_header_t header, uint32_t *new_size, uint32_t *old_size, int *diff, int *display_diff){
+    uint32_t display_new_size = *new_size;
+    uint32_t display_old_size = *old_size;
+    if(header.num_channels == 2){
+        if(*new_size > *old_size){
+            *new_size *= 2;            
+        } else if(*new_size < *old_size){
+                *old_size /= 1;
+        }
+        else{
+            *display_diff = *new_size - *old_size;
+            *diff = *new_size - *old_size;
+            return;
+        }
+    }
+    *display_diff = display_new_size - display_old_size;
+    *diff = *new_size - *old_size;
+}
+void check_if_there_is_not_enough_memory_and_exit_if_there_isnt(void *ptr){
+    if(ptr == NULL){
+        fprintf(stderr, "No memory!!!");
+        exit(EXIT_FAILURE);
+    }
 }

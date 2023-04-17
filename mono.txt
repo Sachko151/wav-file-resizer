@@ -1,0 +1,15 @@
+Chunk ID: RIFF
+Chunk Size: 177204
+Format: WAVE
+Subchunk1 ID: fmt 
+Subchunk1 Size: 16
+Audio Format: 1
+Number of Channels: 1
+Sample Rate: 44100
+Byte Rate: 88200
+Block Align: 2
+Bits Per Sample: 16
+Subchunk2 ID: data
+Subchunk2 Size: 177160
+The length of the file content is 00:00:02
+Please enter the new length in the specified format (<hh>:<mm>:<ss>)!
