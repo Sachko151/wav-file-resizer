@@ -47,13 +47,13 @@ void check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not(wav_he
 }
 void extend_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename, int silent_flag){
     log_function(silent_flag, extend_the_wav_file_with_specified_duration_in_seconds);
-    uint32_t num_samples = (8*header.subchunk2_size) / (header.num_channels * header.bits_per_sample);
-    int16_t *data;
+    uint32_t num_samples = ((header.bits_per_sample / 2)*header.subchunk2_size) / (header.num_channels * header.bits_per_sample);
+    int32_t *data;
     uint32_t silence_len = (uint32_t)(duration * header.sample_rate); // number of silence samples
-    header.chunk_size = 36 + (num_samples + silence_len) * sizeof(int16_t);
-    header.subchunk2_size = (num_samples + silence_len) * sizeof(int16_t);
+    header.chunk_size = 36 + (num_samples + silence_len) * (header.bits_per_sample / 8);
+    header.subchunk2_size = ((num_samples / (header.bits_per_sample / 16)) + silence_len) * (header.bits_per_sample / 8);
     fwrite(&header, sizeof(wav_header_t), 1, output_file);
-    write_memory_sequentially_extend(data, num_samples, silence_len, input_file, output_file);
+    write_memory_sequentially_extend(header, data, num_samples, silence_len, input_file, output_file);
     log_function_parameter(silent_flag, input_file, input_file, p);
     log_function_parameter(silent_flag, output_file, output_file, p);
     log_function_parameter(silent_flag, duration, duration, g);
@@ -64,13 +64,14 @@ void extend_the_wav_file_with_specified_duration_in_seconds(wav_header_t header,
 void trim_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename, int silent_flag){
     log_function(silent_flag, trim_the_wav_file_with_specified_duration_in_seconds);
     uint32_t length = header.subchunk2_size / (header.sample_rate * header.num_channels * header.bits_per_sample / 8);
-    duration = length - duration;
-    int16_t *data;
-    uint32_t num_samples = (uint32_t)(duration * (header.sample_rate*header.num_channels));
-    header.chunk_size = 36 + num_samples * sizeof(int16_t);
-    header.subchunk2_size = num_samples * sizeof(int16_t);
+    uint32_t dur = length - duration;
+    int32_t *data;
+    uint32_t num_samples = (uint32_t)(dur * ((header.sample_rate*(header.bits_per_sample / 16))*header.num_channels));
+    header.chunk_size = 36 + (num_samples) * (header.bits_per_sample / 8);
+    header.subchunk2_size = ((num_samples / (header.bits_per_sample / 16))) * (header.bits_per_sample / 8);
     fwrite(&header, sizeof(wav_header_t), 1, output_file);
-    write_memory_sequentially_trim(data, num_samples,input_file, output_file);
+    num_samples = (uint32_t)(dur * ((header.sample_rate)*header.num_channels));
+    write_memory_sequentially_trim(header, data, num_samples,input_file, output_file);
     log_function_parameter(silent_flag, input_file, input_file, p);
     log_function_parameter(silent_flag, output_file, output_file, p);
     log_function_parameter(silent_flag, duration, duration, g);
@@ -147,11 +148,11 @@ void check_if_new_size_is_zero_and_exit_if_true(uint32_t new_size){
         exit(EXIT_FAILURE);
     }
 }
-void write_memory_sequentially_extend(int16_t *data, uint32_t num_samples, uint32_t silence_len, FILE *input_file, FILE *output_file){
-    uint32_t max = 134217728; //128 mib
-    if(num_samples * sizeof(int16_t) > max){
+void write_memory_sequentially_extend(wav_header_t header,int32_t *data, uint32_t num_samples, uint32_t silence_len, FILE *input_file, FILE *output_file){
+    size_t size = (header.bits_per_sample / 8);
+    if(num_samples * size > MAX_RAM_USAGE){
         int split = 1;
-        while (num_samples * sizeof(int16_t) > max)
+        while (num_samples * size > MAX_RAM_USAGE)
         {
             split *= 2;
             num_samples /= 2;
@@ -160,20 +161,23 @@ void write_memory_sequentially_extend(int16_t *data, uint32_t num_samples, uint3
         {
             double percent = ((double)i * 100 / (split));
             printf("Progres:%c%.3g\n",'%',percent);
-            data = malloc(num_samples * sizeof(int16_t));
-            fread(data, sizeof(int16_t), num_samples, input_file); //copy existing data
-            fwrite(data, sizeof(int16_t), num_samples, output_file);
+            data = malloc(num_samples * size);
+            check_if_there_is_not_enough_memory_and_exit_if_there_isnt(data);
+            fread(data, size, num_samples, input_file); //copy existing data
+            fwrite(data, size, num_samples, output_file);
             free(data);
         }
         
     } else{
-        data = malloc(num_samples * sizeof(int16_t));
-        fread(data, sizeof(int16_t), num_samples, input_file); //copy existing data
-        fwrite(data, sizeof(int16_t), num_samples, output_file);
+        data = malloc(num_samples * (size));
+        check_if_there_is_not_enough_memory_and_exit_if_there_isnt(data);
+        fread(data, size, num_samples, input_file); //copy existing data
+        fwrite(data, size, num_samples, output_file);
+        free(data);
     }
-    if(silence_len * sizeof(int16_t) > max){
+    if(silence_len * size > MAX_RAM_USAGE){
         int split = 1;
-        while (silence_len * sizeof(int16_t) > max)
+        while (silence_len * size > MAX_RAM_USAGE)
         {
             
             split *= 2;
@@ -183,22 +187,25 @@ void write_memory_sequentially_extend(int16_t *data, uint32_t num_samples, uint3
         {
             double percent = ((double)i * 100 / (split));
             printf("Progres:%c%.3g\n",'%',percent);
-            data = malloc(silence_len * sizeof(int16_t)); // reallocate space for the silence samples
-            memset(data, 0, silence_len * sizeof(int16_t)); //set the samples to 0
-            fwrite(data, sizeof(int16_t),silence_len, output_file);
+            data = malloc(silence_len * size); // reallocate space for the silence samples
+            check_if_there_is_not_enough_memory_and_exit_if_there_isnt(data);
+            memset(data, 0, silence_len * size); //set the samples to 0
+            fwrite(data, size,silence_len, output_file);
             free(data);
         }
     } else {
-    data = malloc(silence_len * sizeof(int16_t)); // reallocate space for the silence samples
-    memset(data, 0, silence_len * sizeof(int16_t)); //set the samples to 0
-    fwrite(data, sizeof(int16_t),silence_len, output_file);
+    data = malloc(silence_len * size); // reallocate space for the silence samples
+    check_if_there_is_not_enough_memory_and_exit_if_there_isnt(data);
+    memset(data, 0, silence_len * size); //set the samples to 0
+    fwrite(data, size,silence_len, output_file);
+    free(data);
     }
 }
-void write_memory_sequentially_trim(int16_t *data, uint32_t num_samples, FILE *input_file, FILE *output_file){
-    uint32_t max = 134217728; //128 mib
-    if(num_samples * sizeof(int16_t) > max){
+void write_memory_sequentially_trim(wav_header_t header,int32_t *data, uint32_t num_samples, FILE *input_file, FILE *output_file){
+    size_t size = (header.bits_per_sample / 8);
+    if(num_samples * size > MAX_RAM_USAGE){
         int split = 1;
-        while (num_samples * sizeof(int16_t) > max)
+        while (num_samples * size > MAX_RAM_USAGE)
         {
             split *= 2;
             num_samples /= 2;
@@ -207,15 +214,18 @@ void write_memory_sequentially_trim(int16_t *data, uint32_t num_samples, FILE *i
         {
             double percent = ((double)i * 100 / (split));
             printf("Progres:%c%.3g\n",'%',percent);
-            data = malloc(num_samples * sizeof(int16_t));
-            fread(data, sizeof(int16_t), num_samples, input_file); //copy existing data
-            fwrite(data, sizeof(int16_t), num_samples, output_file);
+            data = malloc(num_samples * size);
+            check_if_there_is_not_enough_memory_and_exit_if_there_isnt(data);
+            fread(data, size, num_samples, input_file); //copy existing data
+            fwrite(data, size, num_samples, output_file);
             free(data);
         }
         
     } else{
-        data = malloc(num_samples * sizeof(int16_t));
-        fread(data, sizeof(int16_t), num_samples, input_file); //copy existing data
-        fwrite(data, sizeof(int16_t), num_samples, output_file);
+        data = malloc(num_samples * size);
+        check_if_there_is_not_enough_memory_and_exit_if_there_isnt(data);
+        fread(data, size, num_samples, input_file); //copy existing data
+        fwrite(data, size, num_samples, output_file);
+        free(data);
     }
 }
