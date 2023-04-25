@@ -1,2 +1,2 @@
 # wav-file-resizer
-An upcoming project which revolves around manipulating wav files using C.
+This branch is dedicated to the implementation of a GUI using GTK. This branch will not be merged in main.

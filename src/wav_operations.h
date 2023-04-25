@@ -6,6 +6,7 @@
 #include <string.h>
 #include "main_functions.h"
 #include "log.h"
+#define MAX_RAM_USAGE 134217728 //128 Mib
 FILE *open_wav_file_and_exit_if_error_encountered(char *filename, int silent_flag);
 void print_out_wav_file_metadata(wav_header_t wav_struct, int silent_flag);
 void check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not(wav_header_t header, int silent_flag);

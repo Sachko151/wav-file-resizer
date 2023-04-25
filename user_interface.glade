@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkFileFilter" id="filefilter1">
+    <mime-types>
+      <mime-type>music/ *</mime-type>
+    </mime-types>
+    <patterns>
+      <pattern>*.wav</pattern>
+    </patterns>
+  </object>
+  <object class="GtkWindow" id="main_window">
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">wav-file-resizer</property>
+    <property name="default-width">600</property>
+    <property name="default-height">600</property>
+    <child>
+      <object class="GtkFixed" id="fixed_layout">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkLabel" id="lbl_intro">
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">WAV-FILE-RESIZER</property>
+            <attributes>
+              <attribute name="size" value="18432"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">200</property>
+            <property name="y">28</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkFileChooserButton" id="btn_pick_input_file">
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="filter">filefilter1</property>
+            <property name="title" translatable="yes"/>
+            <signal name="file-set" handler="on_btn_pick_input_file_file_set" swapped="no"/>
+          </object>
+          <packing>
+            <property name="x">74</property>
+            <property name="y">189</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkAccelLabel" id="lbl_file_chooser_button">
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Pick a wav file to resize!</property>
+            <attributes>
+              <attribute name="size" value="12288"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">52</property>
+            <property name="y">109</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lbl_time">
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Please enter the time: (hh:mm:ss)</property>
+            <attributes>
+              <attribute name="size" value="12288"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">320</property>
+            <property name="y">109</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="txt_length">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="max-length">8</property>
+          </object>
+          <packing>
+            <property name="x">320</property>
+            <property name="y">189</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="btn_resize">
+            <property name="label" translatable="yes">Resize</property>
+            <property name="width-request">100</property>
+            <property name="height-request">50</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <signal name="clicked" handler="btn_resize_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="x">220</property>
+            <property name="y">361</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lbl_info">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">File resized successfully!</property>
+            <attributes>
+              <attribute name="size" value="18432"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">145</property>
+            <property name="y">440</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lbl_additional_info">
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">File resized with %d seconds!</property>
+            <attributes>
+              <attribute name="size" value="18432"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">145</property>
+            <property name="y">503</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
