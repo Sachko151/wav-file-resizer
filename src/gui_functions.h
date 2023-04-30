@@ -6,5 +6,5 @@
 #include <glib-2.0/glib.h>
 #include <stdlib.h>
 #include <stddef.h>
-void on_btn_pick_input_file_file_set(GtkFileChooserButton *button, gpointer user_data);
+void set_lbl_info_text(GtkWidget *lbl_info, int success_code, int operation_code, int time);
 #endif

@@ -1,5 +1,5 @@
 #include "main_functions.h"
-void check_for_additional_arguments(int *o_flag, int *s_flag, int argc, char **argv){
+void check_for_additional_arguments(int *o_flag, int *s_flag, int *g_flag, int argc, char **argv){
     if(argc < 2){
         printf("No additional arguments\n");
         return;
@@ -13,6 +13,10 @@ void check_for_additional_arguments(int *o_flag, int *s_flag, int argc, char **a
         if((strcmp("-o", argv[i]) == 0)){
             printf("Overwrite mode!\n");
             *o_flag = 1;
+        }
+        if((strcmp("-g", argv[i]) == 0)){
+            printf("GUI mode!\n");
+            *g_flag = 1;
         }
     }
     
@@ -30,11 +34,11 @@ void safe_string_input(char *str, int length){
     }
     str[strlen(str)-1] = '\0';
 }
-void check_if_the_filename_is_invalid_and_exit_if_it_is(char *filename, int silent_flag){
+int check_if_the_filename_is_invalid_and_exit_if_it_is(char *filename, int silent_flag){
     log_function(silent_flag, check_if_the_filename_is_invalid_and_exit_if_it_is);
     if(strlen(filename) < 4){
         printf("Invalid file type!\n");
-        exit(EXIT_FAILURE);
+        return -1;
     }
     log_function_parameter(silent_flag, filename, filename, s);
     char acceptable[4] = ".wav";
@@ -43,11 +47,11 @@ void check_if_the_filename_is_invalid_and_exit_if_it_is(char *filename, int sile
     {
         if(filename[i] != *(ptr_to_acc++)){
             printf("Invalid file type!\n");
-            exit(EXIT_FAILURE);
+            return -1;
         }
     }
     log_function_parameter(silent_flag, filename, filename, s);
-    
+    return 0;
 }
 char *return_new_output_filename(char *input_filename, int silent_flag){
     log_function(silent_flag, return_new_output_filename);
@@ -84,7 +88,7 @@ uint32_t return_length_in_seconds_from_string_format(char *input, int silent_fla
     log_function(silent_flag, return_length_in_seconds_from_string_format);
     if(strlen(input) != 8){
         fprintf(stderr, "Wrong input format");
-        exit(EXIT_FAILURE);
+        return -1;
     }
     char hours[3], minutes[3], seconds[3];
     hours[0] = input[0];
@@ -117,9 +121,9 @@ void remove_old_file_if_overwrite_flag_is_present(int overwrite_flag, char *inpu
         remove(input_filename);
     }
 }
-void start_of_the_program(int *overwrite_flag, int *silent_flag, int argc, char **argv, char *input_filename, char *output_filename,
+void start_of_the_program(int *overwrite_flag, int *silent_flag,int *gui_flag, int argc, char **argv, char *input_filename, char *output_filename,
     FILE *input_file,FILE *output_file, wav_header_t header_metadata, char *new_wav_length){
-    check_for_additional_arguments(overwrite_flag, silent_flag, argc, argv);
+    check_for_additional_arguments(overwrite_flag, silent_flag, gui_flag,  argc, argv);
     log_function(*silent_flag, start_of_the_program);
     prompt_for_filename_and_fill_in_filename(input_filename, *silent_flag);
     check_if_the_filename_is_invalid_and_exit_if_it_is(input_filename, *silent_flag);
@@ -135,7 +139,7 @@ void start_of_the_program(int *overwrite_flag, int *silent_flag, int argc, char 
     uint32_t new_size = return_length_in_seconds_from_string_format(new_wav_length,*silent_flag);
     check_if_new_size_is_zero_and_exit_if_true(new_size);
     determine_whether_to_trim_extend_or_quit(old_size, new_size, header_metadata, input_file, output_file,
-    input_filename, output_filename,*silent_flag);
+    input_filename, output_filename,*silent_flag, NULL);
     remove_old_file_if_overwrite_flag_is_present(*overwrite_flag, input_filename,*silent_flag);
     free(output_filename);
 }

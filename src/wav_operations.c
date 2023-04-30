@@ -35,15 +35,16 @@ void print_out_wav_file_length_in_specified_format(wav_header_t wav_struct, int 
     int seconds = easier_format % 60;
     printf("The length of the file content is %.02d:%.02d:%.02d\n", hours,minutes,seconds);
 }
-void check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not(wav_header_t header, int silent_flag){
+int check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not(wav_header_t header, int silent_flag){
     log_function(silent_flag, check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not);
     if (strncmp(header.chunk_id, "RIFF", 4) != 0 ||
         strncmp(header.format, "WAVE", 4) != 0 ||
         strncmp(header.subchunk1_ID, "fmt ", 4) != 0 ||
         strncmp(header.subchunk2_ID, "data", 4) != 0) {
         fprintf(stderr, "Input file is not a WAV correct file\n");
-        exit(EXIT_FAILURE);
+        return -1;
     }
+    return 0;
 }
 void extend_the_wav_file_with_specified_duration_in_seconds(wav_header_t header, FILE *input_file, FILE *output_file, double duration, char *input_filename, char *output_filename, int silent_flag){
     log_function(silent_flag, extend_the_wav_file_with_specified_duration_in_seconds);
@@ -92,7 +93,7 @@ void free_resources(FILE *input_file, FILE *output_file, int silent_flag){
     fclose(output_file);
 }
 void determine_whether_to_trim_extend_or_quit(uint32_t old_size, uint32_t new_size, wav_header_t header, FILE *input_file, 
-                                            FILE *output_file, char *input_filename, char *output_filename, int silent_flag){
+                                            FILE *output_file, char *input_filename, char *output_filename, int silent_flag, GtkWidget *lbl_info){
     log_function(silent_flag, determine_whether_to_trim_extend_or_quit);
     int diff, display_diff;
     change_duration_so_that_it_works_with_stereo(header, &new_size, &old_size, &diff, &display_diff);
@@ -100,10 +101,12 @@ void determine_whether_to_trim_extend_or_quit(uint32_t old_size, uint32_t new_si
         trim_the_wav_file_with_specified_duration_in_seconds(header, input_file, output_file, abs(diff), 
         input_filename, output_filename,silent_flag);
         printf("File successfully trimmed with %d seconds!\n", abs(display_diff));
+        set_lbl_info_text(lbl_info, 0,1,abs(display_diff));
     } else if(display_diff > 0){
         extend_the_wav_file_with_specified_duration_in_seconds(header, input_file, output_file, diff, 
         input_filename, output_filename,silent_flag);
         printf("File successfully extended with %d seconds!\n", display_diff);
+        set_lbl_info_text(lbl_info, 0,0,display_diff);
     } else{
         printf("Nothing to do!\n");
     }
