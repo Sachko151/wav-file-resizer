@@ -18,6 +18,3 @@ In order to build wav-file-resizer you have two options.
         
        gcc -o wav_resizer main.c src/main_functions.c src/wav_operations.c -I.
       
-**Diagram**
-
-![Flowchart](https://gitlab.com/Sachko302/wav-file-resizer/-/blob/main/block-scheme.drawio.png)
