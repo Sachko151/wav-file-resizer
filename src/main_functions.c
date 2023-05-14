@@ -1,4 +1,4 @@
-#include "main_functions.h"
+#include "include/main_functions.h"
 void check_for_additional_arguments(int *o_flag, int *s_flag, int argc, char **argv){
     if(argc < 2){
         printf("No additional arguments\n");
@@ -118,7 +118,7 @@ void remove_old_file_if_overwrite_flag_is_present(int overwrite_flag, char *inpu
     }
 }
 void start_of_the_program(int *overwrite_flag, int *silent_flag, int argc, char **argv, char *input_filename, char *output_filename,
-    FILE *input_file,FILE *output_file, wav_header_t header_metadata, char *new_wav_length){
+    FILE *input_file,FILE *output_file, wav_header_t header_metadata, char *new_wav_length, wav_additional_data_t *additional_data){
     check_for_additional_arguments(overwrite_flag, silent_flag, argc, argv);
     log_function(*silent_flag, start_of_the_program);
     prompt_for_filename_and_fill_in_filename(input_filename, *silent_flag);
@@ -128,6 +128,10 @@ void start_of_the_program(int *overwrite_flag, int *silent_flag, int argc, char 
     read_the_metadata_for_the_wav_file(&header_metadata, input_file);
     check_if_the_wav_file_has_correct_metadata_structure_and_exit_if_not(header_metadata,*silent_flag);
     print_out_wav_file_metadata(header_metadata,*silent_flag);
+    long bytes_in_additional_metadata = check_if_additional_information_is_found_and_set_position_if_it_is(header_metadata, additional_data, input_file);
+    if(bytes_in_additional_metadata){
+        read_and_fill_in_additional_metadata_if_found(header_metadata, additional_data, input_file);
+    }
     print_out_wav_file_length_in_specified_format(header_metadata,*silent_flag);
     prompt_for_new_length_in_specified_format(new_wav_length,*silent_flag);
     output_file = open_the_output_file_and_exit_if_error_encountered(output_filename,*silent_flag);
@@ -135,7 +139,8 @@ void start_of_the_program(int *overwrite_flag, int *silent_flag, int argc, char 
     uint32_t new_size = return_length_in_seconds_from_string_format(new_wav_length,*silent_flag);
     check_if_new_size_is_zero_and_exit_if_true(new_size);
     determine_whether_to_trim_extend_or_quit(old_size, new_size, header_metadata, input_file, output_file,
-    input_filename, output_filename,*silent_flag);
+    input_filename, output_filename,*silent_flag, bytes_in_additional_metadata);
     remove_old_file_if_overwrite_flag_is_present(*overwrite_flag, input_filename,*silent_flag);
+    free_additional_metadata_resources(additional_data);
     free(output_filename);
 }
